@@ -11,7 +11,7 @@ void log(std::ostream& os, std::ofstream& file, const std::string& message) {
 }
 
 int main() {
-    std::ofstream logFile("test_log.txt");
+    std::ofstream logFile("log.txt");
     log(std::cout, logFile, "STARTING TESTS FOR GAP BUFFER");
     log(std::cout, logFile, "Initial state: empty buffer");
     log(std::cout, logFile, "----------------------------------------");
