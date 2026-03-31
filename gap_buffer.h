@@ -12,21 +12,22 @@ namespace gap_buffer {
 
         // ----- CRUD operations as operators -----
 
-        // Add a character to the buffer
+        // Add a character at the current cursor position
         GapBuffer& operator+=(char value);
-        // Delete a character from the buffer
+        // Delete count characters before the cursor
         GapBuffer& operator-=(int count);
-        // Update a character in the buffer
+        // Replace the character at the cursor
         GapBuffer& operator*=(char value);
 
+        // Return buffer contents and metadata as a string
         std::string toString() const;
 
-        // operator[] for returning the position of the gap
+        // Find a character and return its logical index
         int operator[](char value) const;
-        // operator! to clear the buffer
+        // Clear the buffer contents
         void operator!();
 
-        std::string to_string() const;
+
 
         // ----- Common operations -----
         // 6 logical comparison operators
@@ -37,6 +38,7 @@ namespace gap_buffer {
         bool operator>(const GapBuffer& other) const;
         bool operator>=(const GapBuffer& other) const;
 
+        // Move the cursor to a logical position in the text
         void moveCursor(int position);
 
     private:

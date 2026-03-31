@@ -150,6 +150,7 @@ namespace gap_buffer {
         implementation->gap_end = implementation->capacity;
     }
 
+    // Utilities
     void GapBuffer::moveCursor(int position) {
         if (position < 0 || position > implementation->size()) {
             throw GapBufferException("Position out of bounds");
@@ -170,6 +171,7 @@ namespace gap_buffer {
         return ss.str();
     }
 
+    // Comparison operators
     bool GapBuffer::operator==(const GapBuffer& other) const {
         return this->toString() == other.toString();
     }
