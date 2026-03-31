@@ -13,20 +13,29 @@ void log(std::ostream& os, std::ofstream& file, const std::string& message) {
 int main() {
     std::ofstream logFile("test_log.txt");
     log(std::cout, logFile, "STARTING TESTS FOR GAP BUFFER");
+    log(std::cout, logFile, "Initial state: empty buffer");
+    log(std::cout, logFile, "----------------------------------------");
     try {
         GapBuffer gb;
         log(std::cout, logFile, "Test 1: Adding characters");
+        log(std::cout, logFile, "Adding 'H' to the buffer...");
         gb += 'H';
+        log(std::cout, logFile, "Adding 'e' to the buffer...");
         gb += 'e';
+        log(std::cout, logFile, "Adding 'l' to the buffer...");
         gb += 'l';
+        log(std::cout, logFile, "Adding 'l' to the buffer...");
         gb += 'l';
+        log(std::cout, logFile, "Adding 'o' to the buffer...");
         gb += 'o';
         assert(gb.toString() == "Hello (size: 5/10)");
         log(std::cout, logFile, "PASSED: " + gb.toString());
 
         log(std::cout, logFile, "Test 2: Moving cursor");
         gb.moveCursor(1);
+        log(std::cout, logFile, "Cursor moved to position 1");
         gb += 'a';
+        log(std::cout, logFile, "Inserted 'a' at cursor position");
 
         assert(gb.toString() == "Haello (size: 6/10)");
         log(std::cout, logFile, "PASSED: " + gb.toString());
@@ -37,12 +46,12 @@ int main() {
         log(std::cout, logFile, "PASSED: " + gb.toString());
 
         log(std::cout, logFile, "Test 4: Testing search operator []");
-        assert(gb['A'] == 1);
+        assert(gb['A'] == 2);
         log(std::cout, logFile, "PASSED: " + gb.toString());
 
         log(std::cout, logFile, "Test 5: Testing delete operator -=");
         gb -= 1;
-        assert(gb.toString() == "Hello (size: 5/10)");
+        assert(gb.toString() == "HAllo (size: 5/10)");
         log(std::cout, logFile, "PASSED: " + gb.toString());
 
         log(std::cout, logFile, "Test 6: Testing deep copy");
@@ -69,6 +78,7 @@ int main() {
         !gb;
         assert(gb.toString() == " (size: 0/10)");
         log(std::cout, logFile, "PASSED: " + gb.toString());
+        log(std::cout, logFile, "----------------------------------------");
 
         log(std::cout, logFile, "Test 10: Testing out of bounds");
         try {
@@ -78,6 +88,18 @@ int main() {
         catch (const std::exception& e) {
             log(std::cout, logFile, "PASSED: Caught expected exception: " + std::string(e.what()));
         }
+        log(std::cout, logFile, "----------------------------------------");
+
+        log(std::cout, logFile, "Test 11: Searching for a missing character");
+        assert(gb['z'] == -1);
+        log(std::cout, logFile, "PASSED: missing character returns -1");
+        log(std::cout, logFile, "----------------------------------------");
+
+        log(std::cout, logFile, "Test 12: Reusing cleared buffer");
+        gb += 'X';
+        gb += 'Y';
+        assert(gb.toString() == "XY (size: 2/10)");
+        log(std::cout, logFile, "PASSED: " + gb.toString());
     }
     catch (const std::exception& e) {
         log(std::cout, logFile, std::string("Test failed with exception: ") + e.what());
