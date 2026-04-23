@@ -29,3 +29,8 @@ PASSED:  (size: 0/10)
 Test 10: Testing out of bounds
 PASSED: Caught expected exception: GapBuffer Error: Position out of bounds
 Test 11: Searching for a missing character
+PASSED: missing character returns -1
+Test 12: Reusing cleared buffer
+PASSED: OK (size: 2/10)
+----------------------------------------
+ALL TESTS COMPLETED
