@@ -1,0 +1,36 @@
+STARTING TESTS FOR GAP BUFFER
+Initial state: empty buffer
+----------------------------------------
+Test 1: Adding characters
+Building the initial text: Code
+PASSED: Code (size: 4/10)
+Test 2: Moving cursor and inserting
+Cursor moved between 'o' and 'd'
+Inserted '-' at cursor position
+PASSED: Co-de (size: 5/10)
+Test 3: Testing update operator *=
+Replacing the character at the cursor: d -> D
+PASSED: Co-De (size: 5/10)
+Test 4: Testing search operator []
+PASSED: Co-De (size: 5/10)
+Test 5: Testing delete operator -=
+Deleting the character before the cursor: '-'
+PASSED: CoDe (size: 4/10)
+Test 6: Testing deep copy
+Original: CoDe (size: 4/10)
+Copy: CoDe! (size: 5/10)
+PASSED
+Test 7: Testing assignment operator =
+PASSED: CoDe! (size: 5/10)
+Test 8: Testing comparison operators
+PASSED: CoDe (size: 4/10)
+Test 9: Testing clear operator !
+PASSED:  (size: 0/10)
+Test 10: Testing out of bounds
+PASSED: Caught expected exception: GapBuffer Error: Position out of bounds
+Test 11: Searching for a missing character
+PASSED: missing character returns -1
+Test 12: Reusing cleared buffer
+PASSED: OK (size: 2/10)
+----------------------------------------
+ALL TESTS COMPLETED
