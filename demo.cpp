@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-using namespace gap_buffer;
+using namespace Gap_buffer;
 
 int main() {
     std::cout << "=====================================================" << std::endl;

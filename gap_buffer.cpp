@@ -1,8 +1,9 @@
 #include "gap_buffer.h"
-#include <iostream>
+#include <algorithm>
 #include <sstream>
+#include <stdexcept>
 
-namespace gap_buffer {
+namespace Gap_buffer {
 
     class GapBufferException : public std::runtime_error {
         public:
@@ -12,78 +13,172 @@ namespace gap_buffer {
 
     class GapBuffer::Impl {
         friend class GapBuffer;
-        public:
-            char* buffer;
-            int capacity;
-            int gap_start;
-            int gap_end;
 
-            Impl(int default_capacity = 10) : capacity(default_capacity), gap_start(0), gap_end(default_capacity) {
-                buffer = new char[capacity];
+    private:
+        char* buffer;
+        int capacity;
+        int gap_start;
+        int gap_end;
+
+        Impl(int default_capacity = 10) : capacity(default_capacity), gap_start(0), gap_end(default_capacity) {
+            buffer = new char[capacity];
+        }
+
+        // copy constructor of Impl
+        Impl(const Impl& other) : capacity(other.capacity), gap_start(other.gap_start), gap_end(other.gap_end) {
+            buffer = new char[capacity];
+            std::copy(other.buffer, other.buffer + capacity, buffer);
+        }
+
+        ~Impl() {
+            delete[] buffer;
+        }
+
+        int size() const {
+            return capacity - (gap_end - gap_start);
+        }
+
+        char charAt(int index) const {
+            if (index < gap_start) {
+                return buffer[index];
             }
 
-            // copy constructor of Impl
-            Impl(const Impl& other) : capacity(other.capacity), gap_start(other.gap_start), gap_end(other.gap_end) {    
-                buffer = new char[capacity];
-                std::copy(other.buffer, other.buffer + capacity, buffer);
-            }
+            return buffer[index + (gap_end - gap_start)];
+        }
 
-            ~Impl() {
-                delete[] buffer;
-            }
+        int compareTo(const Impl& other) const {
+            int left_size = size();
+            int right_size = other.size();
+            int min_size = std::min(left_size, right_size);
 
-            int size() const {
-                return capacity - (gap_end - gap_start);
-            }
+            for (int i = 0; i < min_size; ++i) {
+                char left = charAt(i);
+                char right = other.charAt(i);
 
-            void shiftGap(int new_pos) {
-                while(new_pos < gap_start) {
-                    moveLeft();
+                if (left < right) {
+                    return -1;
                 }
-                while(new_pos > gap_start) {
-                    moveRight();
-                }
-            }
-        private:
-            void grow() {
-                int old_capacity = capacity;
-                capacity *= 2;
-                char* new_buffer = new char[capacity];
-
-                for (int i = 0 ; i < gap_start; ++i) {
-                    new_buffer[i] = buffer[i];
-                }
-
-                int suffix_size = old_capacity - gap_end;
-                int new_gap_end = capacity - suffix_size;
-
-                for (int i = 0 ; i < suffix_size ; ++i) {
-                    new_buffer[new_gap_end + i] = buffer[gap_end + i];
-                }
-
-                delete[] buffer;
-                buffer = new_buffer;
-                gap_end = new_gap_end;
-            }
-            void moveLeft() {
-                if (gap_start > 0) {
-                    // Move the character left of the gap to the right
-                    gap_start--;
-                    gap_end--;
-                    buffer[gap_end] = buffer[gap_start];
+                if (left > right) {
+                    return 1;
                 }
             }
-            void moveRight() {
-                if (gap_end < capacity) {
-                    // Move the character right of the gap to the left
-                    buffer[gap_start] = buffer[gap_end];
-                    gap_start++;
-                    gap_end++;
+
+            if (left_size < right_size) {
+                return -1;
+            }
+            if (left_size > right_size) {
+                return 1;
+            }
+
+            return 0;
+        }
+
+        void insert(char value) {
+            if (gap_start == gap_end) {
+                grow();
+            }
+            buffer[gap_start] = value;
+            gap_start++;
+        }
+
+        void eraseBeforeCursor(int count) {
+            for (int i = 0; i < count && gap_start > 0; ++i) {
+                gap_start--;
+            }
+        }
+
+        void updateAtCursor(char value) {
+            if (gap_end == capacity) {
+                throw GapBufferException("No character to update");
+            }
+            buffer[gap_end] = value;
+        }
+
+        int find(char value) const {
+            for (int i = 0 ; i < gap_start; ++i) {
+                if (buffer[i] == value) {
+                    return i;
                 }
             }
+
+            for (int i = gap_end ; i < capacity; ++i) {
+                if (buffer[i] == value) {
+                    return i - (gap_end - gap_start);
+                }
+            }
+            return -1;
+        }
+
+        void clear() {
+            gap_start = 0;
+            gap_end = capacity;
+        }
+
+        void shiftGap(int new_pos) {
+            while(new_pos < gap_start) {
+                moveLeft();
+            }
+            while(new_pos > gap_start) {
+                moveRight();
+            }
+        }
+
+        std::string toString() const {
+            std::stringstream ss;
+            for (int i = 0 ; i < gap_start ; ++i) {
+                ss << buffer[i];
+            }
+            for (int i = gap_end ; i < capacity ; ++i) {
+                ss << buffer[i];
+            }
+            int current_size = size();
+            ss << " (size: " << current_size << "/" << capacity << ")";
+            return ss.str();
+        }
+
+        void grow() {
+            int old_capacity = capacity;
+            capacity *= 2;
+            char* new_buffer = new char[capacity];
+
+            for (int i = 0 ; i < gap_start; ++i) {
+                new_buffer[i] = buffer[i];
+            }
+
+            int suffix_size = old_capacity - gap_end;
+            int new_gap_end = capacity - suffix_size;
+
+            for (int i = 0 ; i < suffix_size ; ++i) {
+                new_buffer[new_gap_end + i] = buffer[gap_end + i];
+            }
+
+            delete[] buffer;
+            buffer = new_buffer;
+            gap_end = new_gap_end;
+        }
+
+        void moveLeft() {
+            if (gap_start > 0) {
+                // Move the character left of the gap to the right
+                gap_start--;
+                gap_end--;
+                buffer[gap_end] = buffer[gap_start];
+            }
+        }
+
+        void moveRight() {
+            if (gap_end < capacity) {
+                // Move the character right of the gap to the left
+                buffer[gap_start] = buffer[gap_end];
+                gap_start++;
+                gap_end++;
+            }
+        }
     };
 
-    GapBuffer::GapBuffer() : implementation(new Impl()) {}
+    GapBuffer::GapBuffer() : implementation(new Impl()) 
+    {
+    }
 
     GapBuffer::~GapBuffer() {
         delete implementation;
@@ -104,11 +199,7 @@ namespace gap_buffer {
     // CRUD operations
 
     GapBuffer& GapBuffer::operator+=(char value) {
-        if (implementation->gap_start == implementation->gap_end) {
-            implementation->grow();
-        }
-        implementation->buffer[implementation->gap_start] = value;
-        implementation->gap_start++;
+        implementation->insert(value);
         return *this;
     }
 
@@ -116,38 +207,21 @@ namespace gap_buffer {
         if (count < 0) {
             throw GapBufferException("Count must be positive");
         }
-        for (int i = 0; i < count && implementation->gap_start > 0; ++i) {
-            implementation->gap_start--;
-        }
+        implementation->eraseBeforeCursor(count);
         return *this;
     }
 
     GapBuffer& GapBuffer::operator*=(char value) {
-        if (implementation->gap_end == implementation->capacity) {
-            throw GapBufferException("No character to update");
-        }
-        implementation->buffer[implementation->gap_end] = value;
+        implementation->updateAtCursor(value);
         return *this;
     }
 
     int GapBuffer::operator[](char value) const {
-        for (int i = 0 ; i < implementation->gap_start; ++i) {
-            if (implementation->buffer[i] == value) {
-                return i;
-            }
-        }
-
-        for (int i = implementation->gap_end ; i < implementation->capacity; ++i) {
-            if (implementation->buffer[i] == value) {
-                return i - (implementation->gap_end - implementation->gap_start);
-            }
-        }
-        return -1;
+        return implementation->find(value);
     }
 
     void GapBuffer::operator!() {
-        implementation->gap_start = 0;
-        implementation->gap_end = implementation->capacity;
+        implementation->clear();
     }
 
     // Utilities
@@ -159,21 +233,12 @@ namespace gap_buffer {
     }
 
     std::string GapBuffer::toString() const {
-        std::stringstream ss;
-        for (int i = 0 ; i < implementation->gap_start ; ++i) {
-            ss << implementation->buffer[i];
-        }
-        for (int i = implementation->gap_end ; i < implementation->capacity ; ++i) {
-            ss << implementation->buffer[i];
-        }
-        int current_size = implementation->size();
-        ss << " (size: " << current_size << "/" << implementation->capacity << ")";
-        return ss.str();
+        return implementation->toString();
     }
 
     // Comparison operators
     bool GapBuffer::operator==(const GapBuffer& other) const {
-        return this->toString() == other.toString();
+        return implementation->compareTo(*other.implementation) == 0;
     }
 
     bool GapBuffer::operator!=(const GapBuffer& other) const {
@@ -181,19 +246,19 @@ namespace gap_buffer {
     }
 
     bool GapBuffer::operator<(const GapBuffer& other) const {
-        return (implementation->size() < other.implementation->size());
+        return implementation->compareTo(*other.implementation) < 0;
     }
 
     bool GapBuffer::operator<=(const GapBuffer& other) const {
-        return (*this < other) || (*this == other);
+        return implementation->compareTo(*other.implementation) <= 0;
     }
 
     bool GapBuffer::operator>(const GapBuffer& other) const {
-        return !(*this <= other);
+        return implementation->compareTo(*other.implementation) > 0;
     }
 
     bool GapBuffer::operator>=(const GapBuffer& other) const {
-        return !(*this < other);
+        return implementation->compareTo(*other.implementation) >= 0;
     }
 
 }
