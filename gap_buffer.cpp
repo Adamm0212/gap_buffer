@@ -106,7 +106,7 @@ namespace Gap_buffer {
                     return i - (gap_end - gap_start);
                 }
             }
-            return -1;
+            return 404;
         }
 
         void clear() {

@@ -28,9 +28,9 @@ run_test: build_test
 
 clean:
 ifeq ($(OS),Windows_NT)
-	Remove-Item -Force -ErrorAction SilentlyContinue *.o, demo_prog.exe, test_prog.exe, log.txt; exit 0
+	Remove-Item -Force -ErrorAction SilentlyContinue *.o, demo_prog.exe, test_prog.exe; exit 0
 else
-	rm -f *.o demo_prog test_prog log.txt
+	rm -f *.o demo_prog test_prog
 endif
 
 rebuild: clean all
